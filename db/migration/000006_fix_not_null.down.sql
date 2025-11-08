@@ -1,0 +1,25 @@
+
+ALTER TABLE orders
+    ALTER COLUMN discount_amount DROP NOT NULL,
+ALTER COLUMN shipping_fee DROP NOT NULL;
+
+ALTER TABLE carts
+    ALTER COLUMN selected DROP NOT NULL;
+
+ALTER TABLE categories
+    ALTER COLUMN sort DROP NOT NULL,
+ALTER COLUMN level DROP NOT NULL,
+      ALTER COLUMN is_active DROP NOT NULL;
+
+ALTER TABLE products
+    ALTER COLUMN status DROP NOT NULL,
+ALTER COLUMN is_featured DROP NOT NULL,
+      ALTER COLUMN low_stock_threshold DROP NOT NULL,
+      ALTER COLUMN sales_count DROP NOT NULL,
+      ALTER COLUMN view_count DROP NOT NULL;
+
+ALTER TABLE users
+    ALTER COLUMN gender DROP NOT NULL,
+ALTER COLUMN status DROP NOT NULL,
+      ALTER COLUMN is_email_verified DROP NOT NULL,
+      ALTER COLUMN is_phone_verified DROP NOT NULL;

@@ -1,0 +1,51 @@
+version: '2'
+sql:
+  - schema: "db/migration"
+    queries: "db/query"
+    engine: "postgresql"
+    gen:
+      go:
+        package: "sqlc"
+        out: "db/sqlc"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_db_tags: true
+        emit_interface: true
+        emit_empty_slices: true
+        emit_pointers_for_null_types: true
+
+        overrides:
+          # Nullable 的 timestamptz 用 NullTime (必须放在前面!)
+          - db_type: "timestamptz"
+            nullable: true
+            go_type:
+              import: "gomall/utils/dbtypes"
+              type: "NullTime"
+
+          # NOT NULL 的 timestamptz 用 time.Time
+          - db_type: "timestamptz"
+            go_type: "time.Time"
+
+          # Nullable 的 date 用 NullTime
+          - db_type: "date"
+            nullable: true
+            go_type:
+              import: "gomall/utils/dbtypes"
+              type: "NullTime"
+
+          # JSON 类型
+          - db_type: "jsonb"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+
+          - db_type: "json"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+
+          # UUID 类型
+          - db_type: "uuid"
+            go_type:
+              import: "github.com/google/uuid"
+              type: "UUID"
