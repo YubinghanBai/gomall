@@ -382,7 +382,7 @@ func (s *service) SendEmailVerification(ctx context.Context, email string) error
 }
 
 func (s *service) VerifyEmail(ctx context.Context, req VerifyEmailRequest) error {
-	//find code
+	// 1. 查找验证码
 	verificationCode, err := s.repo.GetVerificationCode(ctx, sqlc.GetVerificationCodeParams{
 		Email: req.Email,
 		Code:  req.Code,
@@ -395,21 +395,24 @@ func (s *service) VerifyEmail(ctx context.Context, req VerifyEmailRequest) error
 		return fmt.Errorf("failed to get verification code: %w", err)
 	}
 
-	//check expired
+	// 2. 检查是否过期
 	if time.Now().After(verificationCode.ExpiresAt) {
 		return errors.New("verification code has expired")
 	}
 
-	err = s.repo.MarkCodeAsUsed(ctx, verificationCode.ID)
-	if err != nil {
-		return fmt.Errorf("failed to mark code as used: %w", err)
-	}
+	return s.repo.ExecTx(ctx, func(q sqlc.Querier) error {
+		// 3.1 标记验证码为已使用
+		if err := q.MarkCodeAsUsed(ctx, verificationCode.ID); err != nil {
+			return fmt.Errorf("failed to mark code as used: %w", err)
+		}
 
-	err = s.repo.VerifyUserEmail(ctx, verificationCode.UserID)
-	if err != nil {
-		return fmt.Errorf("failed to verify user email: %w", err)
-	}
-	return nil
+		// 3.2 验证用户邮箱
+		if err := q.VerifyUserEmail(ctx, verificationCode.UserID); err != nil {
+			return fmt.Errorf("failed to verify user email: %w", err)
+		}
+
+		return nil
+	})
 }
 
 // ForgotPassword 忘记密码 - 发送重置验证码
@@ -479,25 +482,27 @@ func (s *service) ResetPassword(ctx context.Context, req ResetPasswordRequest) e
 		return fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// 4. 更新密码
-	err = s.repo.UpdateUserPassword(ctx, sqlc.UpdateUserPasswordParams{
-		Password: hashedPassword,
-		ID:       verificationCode.UserID,
+	return s.repo.ExecTx(ctx, func(q sqlc.Querier) error {
+		// 4.1 更新密码
+		if err := q.UpdateUserPassword(ctx, sqlc.UpdateUserPasswordParams{
+			Password: hashedPassword,
+			ID:       verificationCode.UserID,
+		}); err != nil {
+			return fmt.Errorf("failed to update password: %w", err)
+		}
+
+		// 4.2 标记验证码为已使用
+		if err := q.MarkCodeAsUsed(ctx, verificationCode.ID); err != nil {
+			return fmt.Errorf("failed to mark code as used: %w", err)
+		}
+
+		// 4.3 删除该用户的所有会话（强制重新登录）
+		if err := q.DeleteUserSessions(ctx, verificationCode.UserID); err != nil {
+			return fmt.Errorf("failed to delete user sessions: %w", err)
+		}
+
+		return nil
 	})
-	if err != nil {
-		return fmt.Errorf("failed to update password: %w", err)
-	}
-
-	// 6. 标记验证码为已使用
-	err = s.repo.MarkCodeAsUsed(ctx, verificationCode.ID)
-	if err != nil {
-		return fmt.Errorf("failed to mark code as used: %w", err)
-	}
-
-	// 7. 删除该用户的所有 session（强制重新登录）
-	_ = s.repo.DeleteUserSessions(ctx, verificationCode.UserID)
-
-	return nil
 }
 
 // GetUserSessions 获取用户的所有 session

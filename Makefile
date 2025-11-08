@@ -48,7 +48,9 @@ sqlc:
 	sqlc generate
 
 mock:
-	 mockgen -package mockdb -destination db/mock/store.go gomall/db/sqlc Querier
+	@echo "Generating mocks..."
+	@mockgen -package mockdb -destination db/mock/store.go gomall/db/sqlc Store
+	@echo "✅ Store mock generated: db/mock/store.go"
 
 
 
