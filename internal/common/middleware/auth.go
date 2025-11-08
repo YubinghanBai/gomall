@@ -30,7 +30,7 @@ func AuthMiddleware(tokenMaker token.Maker) gin.HandlerFunc {
 			c.Abort()
 			return
 		}
-		authorizationType := fields[0]
+		authorizationType := strings.ToLower(fields[0])
 		if authorizationType != authorizationTypeBearer {
 			response.Error(c, http.StatusUnauthorized, "invalid authorization type")
 			c.Abort()

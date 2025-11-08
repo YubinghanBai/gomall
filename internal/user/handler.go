@@ -55,7 +55,17 @@ func NewHandler(service Service, tokenMaker token.Maker) *Handler {
 	}
 }
 
-// Register 用户注册
+// Register godoc
+// @Summary      User Register
+// @Description  Create new user account
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      RegisterRequest  true  "Registration Infomation"
+// @Success      200      {object}  response.Response{data=UserResponse}
+// @Failure      400      {object}  response.Response
+// @Failure      500      {object}  response.Response
+// @Router       /users/register [post]
 func (h *Handler) Register(c *gin.Context) {
 	var req RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -72,7 +82,17 @@ func (h *Handler) Register(c *gin.Context) {
 	response.Success(c, user)
 }
 
-// Login 用户登录
+// Login godoc
+// @Summary      User Login
+// @Description  Login with email and password
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      LoginRequest  true  "Login Info"
+// @Success      200      {object}  response.Response{data=LoginResponse}
+// @Failure      400      {object}  response.Response
+// @Failure      401      {object}  response.Response
+// @Router       /users/login [post]
 func (h *Handler) Login(c *gin.Context) {
 	var req LoginContext
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -95,7 +115,17 @@ func (h *Handler) Login(c *gin.Context) {
 	response.Success(c, result)
 }
 
-// GetProfile 获取用户信息
+// GetProfile godoc
+// @Summary      Get User Profile
+// @Description  Get current logged-in user profile information
+// @Tags         User Management
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Success      200  {object}  response.Response{data=UserResponse}
+// @Failure      401  {object}  response.Response
+// @Failure      404  {object}  response.Response
+// @Router       /users/profile [get]
 func (h *Handler) GetProfile(c *gin.Context) {
 	payload := middleware.GetPayload(c)
 	if payload == nil {
@@ -112,7 +142,18 @@ func (h *Handler) GetProfile(c *gin.Context) {
 	response.Success(c, user)
 }
 
-// UpdateProfile 更新用户信息
+// UpdateProfile godoc
+// @Summary      Update User Profile
+// @Description  Update current logged-in user profile information
+// @Tags         User Management
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        request  body      UpdateProfileRequest  true  "Profile information"
+// @Success      200      {object}  response.Response{data=UserResponse}
+// @Failure      400      {object}  response.Response
+// @Failure      401      {object}  response.Response
+// @Router       /users/profile [put]
 func (h *Handler) UpdateProfile(c *gin.Context) {
 	payload := middleware.GetPayload(c)
 	if payload == nil {
@@ -135,6 +176,17 @@ func (h *Handler) UpdateProfile(c *gin.Context) {
 	response.Success(c, user)
 }
 
+// Logout godoc
+// @Summary      User Logout
+// @Description  Logout current user session
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Success      200  {object}  response.Response
+// @Failure      401  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Router       /users/logout [post]
 func (h *Handler) Logout(c *gin.Context) {
 	//get payload from auth middleware
 	payload := middleware.GetPayload(c)
@@ -153,6 +205,17 @@ func (h *Handler) Logout(c *gin.Context) {
 
 }
 
+// RefreshToken godoc
+// @Summary      Refresh Access Token
+// @Description  Refresh access token using refresh token
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      object{refresh_token=string}  true  "Refresh token"
+// @Success      200      {object}  response.Response{data=LoginResponse}
+// @Failure      400      {object}  response.Response
+// @Failure      401      {object}  response.Response
+// @Router       /users/refresh [post]
 func (h *Handler) RefreshToken(c *gin.Context) {
 	var req struct {
 		RefreshToken string `json:"refresh_token" binding:"required"`
@@ -171,7 +234,18 @@ func (h *Handler) RefreshToken(c *gin.Context) {
 	response.Success(c, result)
 }
 
-// ChangePassword 修改密码
+// ChangePassword godoc
+// @Summary      Change Password
+// @Description  Change current user password
+// @Tags         User Management
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        request  body      ChangePasswordRequest  true  "Password information"
+// @Success      200      {object}  response.Response
+// @Failure      400      {object}  response.Response
+// @Failure      401      {object}  response.Response
+// @Router       /users/password/change [post]
 func (h *Handler) ChangePassword(c *gin.Context) {
 	payload := middleware.GetPayload(c)
 	if payload == nil {
@@ -194,7 +268,18 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 	response.Success(c, gin.H{"message": "password changed successfully"})
 }
 
-// SendEmailVerification 发送邮箱验证码
+// SendEmailVerification godoc
+// @Summary      Send Email Verification Code
+// @Description  Send verification code to user email for email verification
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      SendEmailVerificationRequest  true  "Email information"
+// @Success      200      {object}  response.Response
+// @Failure      400      {object}  response.Response
+// @Failure      404      {object}  response.Response
+// @Failure      500      {object}  response.Response
+// @Router       /users/email/send-verification [post]
 func (h *Handler) SendEmailVerification(c *gin.Context) {
 	var req SendEmailVerificationRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -211,7 +296,17 @@ func (h *Handler) SendEmailVerification(c *gin.Context) {
 	response.Success(c, gin.H{"message": "verification code sent to email"})
 }
 
-// VerifyEmail 验证邮箱
+// VerifyEmail godoc
+// @Summary      Verify Email
+// @Description  Verify user email using verification code
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      VerifyEmailRequest  true  "Verification information"
+// @Success      200      {object}  response.Response
+// @Failure      400      {object}  response.Response
+// @Failure      500      {object}  response.Response
+// @Router       /users/email/verify [post]
 func (h *Handler) VerifyEmail(c *gin.Context) {
 	var req VerifyEmailRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -228,7 +323,17 @@ func (h *Handler) VerifyEmail(c *gin.Context) {
 	response.Success(c, gin.H{"message": "email verified successfully"})
 }
 
-// ForgotPassword 忘记密码 - 发送重置验证码
+// ForgotPassword godoc
+// @Summary      Forgot Password
+// @Description  Send password reset code to user email
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      ForgotPasswordRequest  true  "Email information"
+// @Success      200      {object}  response.Response
+// @Failure      400      {object}  response.Response
+// @Failure      500      {object}  response.Response
+// @Router       /users/password/forgot [post]
 func (h *Handler) ForgotPassword(c *gin.Context) {
 	var req ForgotPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -245,7 +350,17 @@ func (h *Handler) ForgotPassword(c *gin.Context) {
 	response.Success(c, gin.H{"message": "if the email exists, a reset code has been sent"})
 }
 
-// ResetPassword 重置密码
+// ResetPassword godoc
+// @Summary      Reset Password
+// @Description  Reset user password using verification code
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      ResetPasswordRequest  true  "Reset information"
+// @Success      200      {object}  response.Response
+// @Failure      400      {object}  response.Response
+// @Failure      500      {object}  response.Response
+// @Router       /users/password/reset [post]
 func (h *Handler) ResetPassword(c *gin.Context) {
 	var req ResetPasswordRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -262,7 +377,17 @@ func (h *Handler) ResetPassword(c *gin.Context) {
 	response.Success(c, gin.H{"message": "password reset successfully"})
 }
 
-// LoginWithUsername 用户名登录
+// LoginWithUsername godoc
+// @Summary      Login with Username
+// @Description  Login with username and password
+// @Tags         User Authentication
+// @Accept       json
+// @Produce      json
+// @Param        request  body      LoginWithUsernameRequest  true  "Login information"
+// @Success      200      {object}  response.Response{data=LoginResponse}
+// @Failure      400      {object}  response.Response
+// @Failure      401      {object}  response.Response
+// @Router       /users/login/username [post]
 func (h *Handler) LoginWithUsername(c *gin.Context) {
 	var req LoginWithUsernameRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -286,7 +411,17 @@ func (h *Handler) LoginWithUsername(c *gin.Context) {
 	response.Success(c, result)
 }
 
-// GetSessions 获取用户所有 session
+// GetSessions godoc
+// @Summary      Get User Sessions
+// @Description  Get all active sessions for current user
+// @Tags         Session Management
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Success      200  {object}  response.Response{data=[]SessionInfo}
+// @Failure      401  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Router       /users/sessions [get]
 func (h *Handler) GetSessions(c *gin.Context) {
 	payload := middleware.GetPayload(c)
 	if payload == nil {
@@ -303,7 +438,19 @@ func (h *Handler) GetSessions(c *gin.Context) {
 	response.Success(c, sessions)
 }
 
-// RevokeSession 撤销指定 session
+// RevokeSession godoc
+// @Summary      Revoke Session
+// @Description  Revoke a specific user session
+// @Tags         Session Management
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Param        session_id  path      string  true  "Session ID"
+// @Success      200         {object}  response.Response
+// @Failure      400         {object}  response.Response
+// @Failure      401         {object}  response.Response
+// @Failure      404         {object}  response.Response
+// @Router       /users/sessions/{session_id} [delete]
 func (h *Handler) RevokeSession(c *gin.Context) {
 	payload := middleware.GetPayload(c)
 	if payload == nil {
@@ -321,7 +468,17 @@ func (h *Handler) RevokeSession(c *gin.Context) {
 	response.Success(c, gin.H{"message": "session revoked successfully"})
 }
 
-// RevokeAllOtherSessions 撤销所有其他设备
+// RevokeAllOtherSessions godoc
+// @Summary      Revoke All Other Sessions
+// @Description  Revoke all user sessions except current one
+// @Tags         Session Management
+// @Accept       json
+// @Produce      json
+// @Security     Bearer
+// @Success      200  {object}  response.Response
+// @Failure      401  {object}  response.Response
+// @Failure      500  {object}  response.Response
+// @Router       /users/sessions/others [delete]
 func (h *Handler) RevokeAllOtherSessions(c *gin.Context) {
 	payload := middleware.GetPayload(c)
 	if payload == nil {

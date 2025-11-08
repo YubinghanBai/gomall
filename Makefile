@@ -1,5 +1,5 @@
   .PHONY: help postgres createdb dropdb migrateup migratedown migrate-create migrateup1 migratedown1 sqlc mock  \
-  	test test-converage test-integration clean run dev build lint fmt vet deps deps-upgrade \
+  	test test-converage test-integration clean run dev build lint fmt vet deps deps-upgrade mock swagger \
 
 
  DB_URL=postgresql://root:secret@localhost:5433/gomall?sslmode=disable
@@ -95,3 +95,9 @@ deps-upgrade:
 	@go get -u ./...
 	@go mod tidy
 	@echo "✅ Dependencies upgraded!"
+
+
+swagger:
+	@echo "Generating swagger docs..."
+	@swag init -g cmd/api/main.go -o docs --parseDependency --parseInternal
+	@echo "✅ Swagger docs generated: docs/swagger.json"
