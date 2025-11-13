@@ -8,7 +8,7 @@ package sqlc
 import (
 	"context"
 
-	"gomall/utils/dbtypes"
+	"gomall/utils/types"
 )
 
 const countUsers = `-- name: CountUsers :one
@@ -278,11 +278,11 @@ WHERE id = $5 AND deleted_at IS NULL
 `
 
 type UpdateUserParams struct {
-	Nickname *string          `db:"nickname" json:"nickname"`
-	Avatar   *string          `db:"avatar" json:"avatar"`
-	Gender   *string          `db:"gender" json:"gender"`
-	Birthday dbtypes.NullTime `db:"birthday" json:"birthday"`
-	ID       int64            `db:"id" json:"id"`
+	Nickname *string        `db:"nickname" json:"nickname"`
+	Avatar   *string        `db:"avatar" json:"avatar"`
+	Gender   *string        `db:"gender" json:"gender"`
+	Birthday types.NullTime `db:"birthday" json:"birthday"`
+	ID       int64          `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) error {
@@ -306,9 +306,9 @@ WHERE id = $3 AND deleted_at IS NULL
 `
 
 type UpdateUserLastLoginParams struct {
-	LastLoginAt dbtypes.NullTime `db:"last_login_at" json:"last_login_at"`
-	LastLoginIp *string          `db:"last_login_ip" json:"last_login_ip"`
-	ID          int64            `db:"id" json:"id"`
+	LastLoginAt types.NullTime `db:"last_login_at" json:"last_login_at"`
+	LastLoginIp *string        `db:"last_login_ip" json:"last_login_ip"`
+	ID          int64          `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUserLastLogin(ctx context.Context, arg UpdateUserLastLoginParams) error {

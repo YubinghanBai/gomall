@@ -7,6 +7,7 @@ package sqlc
 
 import (
 	"context"
+	"time"
 )
 
 const countProducts = `-- name: CountProducts :one
@@ -177,6 +178,97 @@ func (q *Queries) DeleteProductImages(ctx context.Context, productID int64) erro
 	return err
 }
 
+const getImagesByProductIDs = `-- name: GetImagesByProductIDs :many
+SELECT id, product_id, image_url, sort, is_main, created_at, updated_at, deleted_at FROM product_images
+WHERE product_id = ANY($1::bigint[])
+  AND deleted_at IS NULL
+ORDER BY product_id ASC, sort ASC, id ASC
+`
+
+func (q *Queries) GetImagesByProductIDs(ctx context.Context, dollar_1 []int64) ([]ProductImage, error) {
+	rows, err := q.db.Query(ctx, getImagesByProductIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ProductImage{}
+	for rows.Next() {
+		var i ProductImage
+		if err := rows.Scan(
+			&i.ID,
+			&i.ProductID,
+			&i.ImageUrl,
+			&i.Sort,
+			&i.IsMain,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getLowStockProducts = `-- name: GetLowStockProducts :many
+
+SELECT id, name, description, brand, price, origin_price, cost_price, stock, low_stock_threshold, sales_count, view_count, category_id, status, is_featured, specifications, created_at, updated_at, deleted_at FROM products
+WHERE stock <= low_stock_threshold
+  AND status = 'published'
+  AND deleted_at IS NULL
+ORDER BY stock ASC
+LIMIT $1 OFFSET $2
+`
+
+type GetLowStockProductsParams struct {
+	Limit  int32 `db:"limit" json:"limit"`
+	Offset int32 `db:"offset" json:"offset"`
+}
+
+// Stock Management
+func (q *Queries) GetLowStockProducts(ctx context.Context, arg GetLowStockProductsParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getLowStockProducts, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Brand,
+			&i.Price,
+			&i.OriginPrice,
+			&i.CostPrice,
+			&i.Stock,
+			&i.LowStockThreshold,
+			&i.SalesCount,
+			&i.ViewCount,
+			&i.CategoryID,
+			&i.Status,
+			&i.IsFeatured,
+			&i.Specifications,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProductByID = `-- name: GetProductByID :one
 SELECT id, name, description, brand, price, origin_price, cost_price, stock, low_stock_threshold, sales_count, view_count, category_id, status, is_featured, specifications, created_at, updated_at, deleted_at FROM products
 WHERE id = $1 AND deleted_at IS NULL
@@ -264,6 +356,54 @@ func (q *Queries) GetProductMainImage(ctx context.Context, productID int64) (Pro
 		&i.DeletedAt,
 	)
 	return i, err
+}
+
+const getProductsByIDs = `-- name: GetProductsByIDs :many
+
+SELECT id, name, description, brand, price, origin_price, cost_price, stock, low_stock_threshold, sales_count, view_count, category_id, status, is_featured, specifications, created_at, updated_at, deleted_at FROM products
+WHERE id = ANY($1::bigint[])
+  AND deleted_at IS NULL
+ORDER BY sales_count DESC
+`
+
+// Batch Operations
+func (q *Queries) GetProductsByIDs(ctx context.Context, dollar_1 []int64) ([]Product, error) {
+	rows, err := q.db.Query(ctx, getProductsByIDs, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Brand,
+			&i.Price,
+			&i.OriginPrice,
+			&i.CostPrice,
+			&i.Stock,
+			&i.LowStockThreshold,
+			&i.SalesCount,
+			&i.ViewCount,
+			&i.CategoryID,
+			&i.Status,
+			&i.IsFeatured,
+			&i.Specifications,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const incrementProductSales = `-- name: IncrementProductSales :exec
@@ -460,6 +600,68 @@ func (q *Queries) ListProductsByCategory(ctx context.Context, arg ListProductsBy
 	return items, nil
 }
 
+const listProductsByPriceRange = `-- name: ListProductsByPriceRange :many
+
+SELECT id, name, description, brand, price, origin_price, cost_price, stock, low_stock_threshold, sales_count, view_count, category_id, status, is_featured, specifications, created_at, updated_at, deleted_at FROM products
+WHERE deleted_at IS NULL
+  AND status = 'published'
+  AND price BETWEEN $1 AND $2
+ORDER BY sales_count DESC
+LIMIT $3 OFFSET $4
+`
+
+type ListProductsByPriceRangeParams struct {
+	Price   int64 `db:"price" json:"price"`
+	Price_2 int64 `db:"price_2" json:"price_2"`
+	Limit   int32 `db:"limit" json:"limit"`
+	Offset  int32 `db:"offset" json:"offset"`
+}
+
+// Advanced Filtering
+func (q *Queries) ListProductsByPriceRange(ctx context.Context, arg ListProductsByPriceRangeParams) ([]Product, error) {
+	rows, err := q.db.Query(ctx, listProductsByPriceRange,
+		arg.Price,
+		arg.Price_2,
+		arg.Limit,
+		arg.Offset,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Product{}
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Description,
+			&i.Brand,
+			&i.Price,
+			&i.OriginPrice,
+			&i.CostPrice,
+			&i.Stock,
+			&i.LowStockThreshold,
+			&i.SalesCount,
+			&i.ViewCount,
+			&i.CategoryID,
+			&i.Status,
+			&i.IsFeatured,
+			&i.Specifications,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.DeletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchProducts = `-- name: SearchProducts :many
 SELECT id, name, description, brand, price, origin_price, cost_price, stock, low_stock_threshold, sales_count, view_count, category_id, status, is_featured, specifications, created_at, updated_at, deleted_at FROM products
 WHERE deleted_at IS NULL
@@ -601,5 +803,65 @@ type UpdateProductStockParams struct {
 
 func (q *Queries) UpdateProductStock(ctx context.Context, arg UpdateProductStockParams) error {
 	_, err := q.db.Exec(ctx, updateProductStock, arg.Stock, arg.ID)
+	return err
+}
+
+const updateProductStockWithVersion = `-- name: UpdateProductStockWithVersion :one
+UPDATE products
+SET
+    stock = stock + $1,
+    updated_at = NOW()
+WHERE id = $2
+  AND updated_at = $3
+  AND deleted_at IS NULL
+RETURNING id, name, description, brand, price, origin_price, cost_price, stock, low_stock_threshold, sales_count, view_count, category_id, status, is_featured, specifications, created_at, updated_at, deleted_at
+`
+
+type UpdateProductStockWithVersionParams struct {
+	Stock     int32     `db:"stock" json:"stock"`
+	ID        int64     `db:"id" json:"id"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (q *Queries) UpdateProductStockWithVersion(ctx context.Context, arg UpdateProductStockWithVersionParams) (Product, error) {
+	row := q.db.QueryRow(ctx, updateProductStockWithVersion, arg.Stock, arg.ID, arg.UpdatedAt)
+	var i Product
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Description,
+		&i.Brand,
+		&i.Price,
+		&i.OriginPrice,
+		&i.CostPrice,
+		&i.Stock,
+		&i.LowStockThreshold,
+		&i.SalesCount,
+		&i.ViewCount,
+		&i.CategoryID,
+		&i.Status,
+		&i.IsFeatured,
+		&i.Specifications,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.DeletedAt,
+	)
+	return i, err
+}
+
+const updateProductsStatus = `-- name: UpdateProductsStatus :exec
+UPDATE products
+SET status = $1, updated_at = NOW()
+WHERE id = ANY($2::bigint[])
+  AND deleted_at IS NULL
+`
+
+type UpdateProductsStatusParams struct {
+	Status  string  `db:"status" json:"status"`
+	Column2 []int64 `db:"column_2" json:"column_2"`
+}
+
+func (q *Queries) UpdateProductsStatus(ctx context.Context, arg UpdateProductsStatusParams) error {
+	_, err := q.db.Exec(ctx, updateProductsStatus, arg.Status, arg.Column2)
 	return err
 }

@@ -19,12 +19,27 @@ services:
       timeout: 5s
       retries: 5
 
-
-
+  redis:
+    container_name: gomall-redis
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - gomall-network
+    command: redis-server --appendonly yes --requirepass secret
+    healthcheck:
+      test: [ "CMD", "redis-cli", "--raw", "incr", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   gomall-network:

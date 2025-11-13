@@ -11,13 +11,34 @@ import (
 )
 
 type Querier interface {
+	AddAvailableStock(ctx context.Context, arg AddAvailableStockParams) error
 	AddToCart(ctx context.Context, arg AddToCartParams) (Cart, error)
 	BlockSession(ctx context.Context, id uuid.UUID) error
+	CancelOrder(ctx context.Context, id int64) error
+	CancelReservation(ctx context.Context, orderID int64) error
 	CleanExpiredSessions(ctx context.Context) error
 	ClearCart(ctx context.Context, userID int64) error
+	ConfirmReservation(ctx context.Context, orderID int64) error
 	CountCartItems(ctx context.Context, userID int64) (int64, error)
+	CountCategoryChildren(ctx context.Context, parentID *int64) (int64, error)
+	CountInventories(ctx context.Context) (int64, error)
+	CountInventoryLogsByProductID(ctx context.Context, productID int64) (int64, error)
+	CountLowStockInventories(ctx context.Context) (int64, error)
 	CountProducts(ctx context.Context) (int64, error)
+	CountProductsByCategory(ctx context.Context, categoryID int64) (int64, error)
+	CountUserOrders(ctx context.Context, userID int64) (int64, error)
 	CountUsers(ctx context.Context) (int64, error)
+	CreateCategory(ctx context.Context, arg CreateCategoryParams) (Category, error)
+	// Inventory Queries
+	CreateInventory(ctx context.Context, arg CreateInventoryParams) (Inventory, error)
+	// Inventory Logs Queries
+	CreateInventoryLog(ctx context.Context, arg CreateInventoryLogParams) (InventoryLog, error)
+	// Inventory Reservations Queries
+	CreateInventoryReservation(ctx context.Context, arg CreateInventoryReservationParams) (InventoryReservation, error)
+	// Orders Queries
+	CreateOrder(ctx context.Context, arg CreateOrderParams) (Order, error)
+	// Order Items Queries
+	CreateOrderItem(ctx context.Context, arg CreateOrderItemParams) (OrderItem, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	// Product Images
 	CreateProductImage(ctx context.Context, arg CreateProductImageParams) (ProductImage, error)
@@ -25,21 +46,46 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateVerificationCode(ctx context.Context, arg CreateVerificationCodeParams) (VerificationCode, error)
 	DecrementProductStock(ctx context.Context, arg DecrementProductStockParams) error
+	DeductReservedStock(ctx context.Context, arg DeductReservedStockParams) error
 	DeleteCartItem(ctx context.Context, arg DeleteCartItemParams) error
+	DeleteCategory(ctx context.Context, id int64) error
 	DeleteExpiredCodes(ctx context.Context) error
+	DeleteInventory(ctx context.Context, productID int64) error
 	DeleteProduct(ctx context.Context, id int64) error
 	DeleteProductImage(ctx context.Context, id int64) error
 	DeleteProductImages(ctx context.Context, productID int64) error
+	DeleteReservation(ctx context.Context, id int64) error
 	DeleteSession(ctx context.Context, id uuid.UUID) error
 	DeleteUser(ctx context.Context, id int64) error
 	DeleteUserSessions(ctx context.Context, userID int64) error
+	GetActiveReservationsByProductID(ctx context.Context, productID int64) ([]InventoryReservation, error)
 	GetCartByUserID(ctx context.Context, userID int64) ([]Cart, error)
 	GetCartItem(ctx context.Context, arg GetCartItemParams) (Cart, error)
 	GetCartItemByProduct(ctx context.Context, arg GetCartItemByProductParams) (Cart, error)
+	GetCategoryByID(ctx context.Context, id int64) (Category, error)
+	GetCategoryBySlug(ctx context.Context, slug *string) (Category, error)
+	GetCategoryChildren(ctx context.Context, parentID *int64) ([]Category, error)
+	GetExpiredReservations(ctx context.Context, limit int32) ([]InventoryReservation, error)
+	GetImagesByProductIDs(ctx context.Context, dollar_1 []int64) ([]ProductImage, error)
+	GetInventoryByID(ctx context.Context, id int64) (Inventory, error)
+	GetInventoryByProductID(ctx context.Context, productID int64) (Inventory, error)
+	GetInventoryLogsByOrderID(ctx context.Context, orderID int64) ([]InventoryLog, error)
+	GetInventoryLogsByProductID(ctx context.Context, arg GetInventoryLogsByProductIDParams) ([]InventoryLog, error)
+	GetInventoryReservationByID(ctx context.Context, id int64) (InventoryReservation, error)
+	GetInventoryReservationByOrderID(ctx context.Context, orderID int64) ([]InventoryReservation, error)
 	GetLatestVerificationCode(ctx context.Context, arg GetLatestVerificationCodeParams) (VerificationCode, error)
+	// Stock Management
+	GetLowStockProducts(ctx context.Context, arg GetLowStockProductsParams) ([]Product, error)
+	GetOrderByID(ctx context.Context, id int64) (Order, error)
+	GetOrderByOrderNo(ctx context.Context, orderNo string) (Order, error)
+	GetOrderItems(ctx context.Context, orderID int64) ([]OrderItem, error)
+	GetOrderItemsByIDs(ctx context.Context, dollar_1 []int64) ([]OrderItem, error)
 	GetProductByID(ctx context.Context, id int64) (Product, error)
 	GetProductImages(ctx context.Context, productID int64) ([]ProductImage, error)
 	GetProductMainImage(ctx context.Context, productID int64) (ProductImage, error)
+	// Batch Operations
+	GetProductsByIDs(ctx context.Context, dollar_1 []int64) ([]Product, error)
+	GetRootCategories(ctx context.Context) ([]Category, error)
 	GetSelectedCartItems(ctx context.Context, userID int64) ([]Cart, error)
 	GetSession(ctx context.Context, id uuid.UUID) (Session, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
@@ -50,18 +96,35 @@ type Querier interface {
 	GetVerificationCode(ctx context.Context, arg GetVerificationCodeParams) (VerificationCode, error)
 	IncrementProductSales(ctx context.Context, arg IncrementProductSalesParams) error
 	IncrementProductViews(ctx context.Context, id int64) error
+	ListCategories(ctx context.Context, dollar_1 bool) ([]Category, error)
 	ListFeaturedProducts(ctx context.Context, arg ListFeaturedProductsParams) ([]Product, error)
+	ListInventories(ctx context.Context, arg ListInventoriesParams) ([]Inventory, error)
+	ListLowStockInventories(ctx context.Context, arg ListLowStockInventoriesParams) ([]Inventory, error)
 	ListProducts(ctx context.Context, arg ListProductsParams) ([]Product, error)
 	ListProductsByCategory(ctx context.Context, arg ListProductsByCategoryParams) ([]Product, error)
+	// Advanced Filtering
+	ListProductsByPriceRange(ctx context.Context, arg ListProductsByPriceRangeParams) ([]Product, error)
+	ListUserOrders(ctx context.Context, arg ListUserOrdersParams) ([]Order, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
 	MarkCodeAsUsed(ctx context.Context, id int64) error
+	ReleaseReservedStock(ctx context.Context, arg ReleaseReservedStockParams) error
+	ReserveStock(ctx context.Context, arg ReserveStockParams) error
 	SearchProducts(ctx context.Context, arg SearchProductsParams) ([]Product, error)
 	UpdateAllCartSelected(ctx context.Context, arg UpdateAllCartSelectedParams) error
 	UpdateCartQuantity(ctx context.Context, arg UpdateCartQuantityParams) error
 	UpdateCartSelected(ctx context.Context, arg UpdateCartSelectedParams) error
+	UpdateCategory(ctx context.Context, arg UpdateCategoryParams) error
+	UpdateInventoryStock(ctx context.Context, arg UpdateInventoryStockParams) error
+	UpdateLowStockThreshold(ctx context.Context, arg UpdateLowStockThresholdParams) error
+	UpdateOrderPaymentStatus(ctx context.Context, arg UpdateOrderPaymentStatusParams) error
+	UpdateOrderShipStatus(ctx context.Context, arg UpdateOrderShipStatusParams) error
+	UpdateOrderStatus(ctx context.Context, arg UpdateOrderStatusParams) error
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) error
 	UpdateProductImage(ctx context.Context, arg UpdateProductImageParams) error
 	UpdateProductStock(ctx context.Context, arg UpdateProductStockParams) error
+	UpdateProductStockWithVersion(ctx context.Context, arg UpdateProductStockWithVersionParams) (Product, error)
+	UpdateProductsStatus(ctx context.Context, arg UpdateProductsStatusParams) error
+	UpdateReservationStatus(ctx context.Context, arg UpdateReservationStatusParams) error
 	UpdateUser(ctx context.Context, arg UpdateUserParams) error
 	UpdateUserLastLogin(ctx context.Context, arg UpdateUserLastLoginParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error

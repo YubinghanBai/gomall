@@ -132,3 +132,53 @@ WHERE id = $1;
 UPDATE product_images
 SET deleted_at = NOW()
 WHERE product_id = $1;
+
+-- Batch Operations
+
+-- name: GetProductsByIDs :many
+SELECT * FROM products
+WHERE id = ANY($1::bigint[])
+  AND deleted_at IS NULL
+ORDER BY sales_count DESC;
+
+-- name: GetImagesByProductIDs :many
+SELECT * FROM product_images
+WHERE product_id = ANY($1::bigint[])
+  AND deleted_at IS NULL
+ORDER BY product_id ASC, sort ASC, id ASC;
+
+-- Stock Management
+
+-- name: GetLowStockProducts :many
+SELECT * FROM products
+WHERE stock <= low_stock_threshold
+  AND status = 'published'
+  AND deleted_at IS NULL
+ORDER BY stock ASC
+LIMIT $1 OFFSET $2;
+
+-- name: UpdateProductStockWithVersion :one
+UPDATE products
+SET
+    stock = stock + $1,
+    updated_at = NOW()
+WHERE id = $2
+  AND updated_at = $3
+  AND deleted_at IS NULL
+RETURNING *;
+
+-- Advanced Filtering
+
+-- name: ListProductsByPriceRange :many
+SELECT * FROM products
+WHERE deleted_at IS NULL
+  AND status = 'published'
+  AND price BETWEEN $1 AND $2
+ORDER BY sales_count DESC
+LIMIT $3 OFFSET $4;
+
+-- name: UpdateProductsStatus :exec
+UPDATE products
+SET status = $1, updated_at = NOW()
+WHERE id = ANY($2::bigint[])
+  AND deleted_at IS NULL;

@@ -1,1 +1,9 @@
 .env
+
+# Swagger generated files
+docs/docs.go
+docs/swagger.json
+docs/swagger.yaml
+
+# Keep markdown docs
+!docs/*.md

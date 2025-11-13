@@ -3,8 +3,9 @@ package db
 import (
 	"context"
 	"fmt"
-	"gomall/config"
 	"time"
+
+	"gomall/internal/config"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )

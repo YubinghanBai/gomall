@@ -1,8 +1,12 @@
 server:
   port: ":8080"
-  mode: "debug" # debug, release
+  mode: "debug" # debug, release, test
+  read_timeout: 15s
+  write_timeout: 15s
+  max_header_bytes: 1048576  # 1MB
 
 database:
+  driver: "postgres"
   host: "localhost"
   port: 5433
   user: "root"
@@ -13,6 +17,25 @@ database:
   max_idle_conns: 5
   conn_max_lifetime: 5m
 
+redis:
+  host: "localhost"
+  port: 6379
+  password: "secret"
+  db: 0
+  pool_size: 10
+  min_idle_conns: 5
+  max_retries: 3
+  dial_timeout: 5s
+  read_timeout: 3s
+  write_timeout: 3s
+
+cache:
+  product_ttl: 10m
+  product_list_ttl: 5m
+  stock_ttl: 1m
+  user_session_ttl: 24h
+  hot_product_ttl: 30m
+
 jwt:
   secret: "12345678901234567890123456789012" # Must be at least 32 characters
   access_token_duration: 15m
@@ -20,5 +43,17 @@ jwt:
 
 email:
   sender_name: "GoMall"
-  sender_email: "bybhwric@gmail.com"  # 替换为你的 Gmail
-  sender_password: "ymcy sfdp wobk zcdi"   # Gmail 应用专用密码，不是登录密码
+  sender_email: "bybhwric@gmail.com"
+  sender_password: "ymcy sfdp wobk zcdi"
+
+pagination:
+  default_page_size: 20
+  max_page_size: 100
+
+inventory:
+  reservation_ttl: 30m  # 库存预留过期时间
+  cleanup_interval: 5m   # 清理过期预留的间隔
+
+order:
+  payment_timeout: 30m   # 订单支付超时时间
+  auto_cancel_interval: 10m  # 自动取消超时订单的间隔

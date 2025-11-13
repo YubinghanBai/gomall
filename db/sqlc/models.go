@@ -8,103 +8,143 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"gomall/utils/dbtypes"
+	"gomall/utils/types"
 )
 
 type Cart struct {
-	ID        int64            `db:"id" json:"id"`
-	UserID    int64            `db:"user_id" json:"user_id"`
-	ProductID int64            `db:"product_id" json:"product_id"`
-	Quantity  int32            `db:"quantity" json:"quantity"`
-	Selected  bool             `db:"selected" json:"selected"`
-	CreatedAt time.Time        `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time        `db:"updated_at" json:"updated_at"`
-	DeletedAt dbtypes.NullTime `db:"deleted_at" json:"deleted_at"`
+	ID        int64          `db:"id" json:"id"`
+	UserID    int64          `db:"user_id" json:"user_id"`
+	ProductID int64          `db:"product_id" json:"product_id"`
+	Quantity  int32          `db:"quantity" json:"quantity"`
+	Selected  bool           `db:"selected" json:"selected"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt types.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type Category struct {
-	ID        int64            `db:"id" json:"id"`
-	Name      string           `db:"name" json:"name"`
-	Slug      *string          `db:"slug" json:"slug"`
-	ParentID  *int64           `db:"parent_id" json:"parent_id"`
-	Icon      *string          `db:"icon" json:"icon"`
-	Sort      int32            `db:"sort" json:"sort"`
-	Level     int16            `db:"level" json:"level"`
-	IsActive  bool             `db:"is_active" json:"is_active"`
-	CreatedAt time.Time        `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time        `db:"updated_at" json:"updated_at"`
-	DeletedAt dbtypes.NullTime `db:"deleted_at" json:"deleted_at"`
+	ID        int64          `db:"id" json:"id"`
+	Name      string         `db:"name" json:"name"`
+	Slug      *string        `db:"slug" json:"slug"`
+	ParentID  *int64         `db:"parent_id" json:"parent_id"`
+	Icon      *string        `db:"icon" json:"icon"`
+	Sort      int32          `db:"sort" json:"sort"`
+	Level     int16          `db:"level" json:"level"`
+	IsActive  bool           `db:"is_active" json:"is_active"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt types.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
+type Inventory struct {
+	ID                int64          `db:"id" json:"id"`
+	ProductID         int64          `db:"product_id" json:"product_id"`
+	AvailableStock    int32          `db:"available_stock" json:"available_stock"`
+	ReservedStock     int32          `db:"reserved_stock" json:"reserved_stock"`
+	TotalStock        int32          `db:"total_stock" json:"total_stock"`
+	LowStockThreshold *int32         `db:"low_stock_threshold" json:"low_stock_threshold"`
+	Version           int64          `db:"version" json:"version"`
+	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt         types.NullTime `db:"deleted_at" json:"deleted_at"`
+}
+
+type InventoryLog struct {
+	ID              int64     `db:"id" json:"id"`
+	ProductID       int64     `db:"product_id" json:"product_id"`
+	OrderID         *int64    `db:"order_id" json:"order_id"`
+	ChangeType      string    `db:"change_type" json:"change_type"`
+	QuantityChange  int32     `db:"quantity_change" json:"quantity_change"`
+	BeforeAvailable int32     `db:"before_available" json:"before_available"`
+	AfterAvailable  int32     `db:"after_available" json:"after_available"`
+	BeforeReserved  int32     `db:"before_reserved" json:"before_reserved"`
+	AfterReserved   int32     `db:"after_reserved" json:"after_reserved"`
+	Reason          *string   `db:"reason" json:"reason"`
+	OperatorID      *int64    `db:"operator_id" json:"operator_id"`
+	CreatedAt       time.Time `db:"created_at" json:"created_at"`
+}
+
+type InventoryReservation struct {
+	ID        int64          `db:"id" json:"id"`
+	ProductID int64          `db:"product_id" json:"product_id"`
+	OrderID   int64          `db:"order_id" json:"order_id"`
+	Quantity  int32          `db:"quantity" json:"quantity"`
+	Status    *string        `db:"status" json:"status"`
+	ExpiresAt time.Time      `db:"expires_at" json:"expires_at"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt types.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type Order struct {
-	ID              int64            `db:"id" json:"id"`
-	OrderNo         string           `db:"order_no" json:"order_no"`
-	UserID          int64            `db:"user_id" json:"user_id"`
-	TotalAmount     int64            `db:"total_amount" json:"total_amount"`
-	DiscountAmount  int64            `db:"discount_amount" json:"discount_amount"`
-	ShippingFee     int64            `db:"shipping_fee" json:"shipping_fee"`
-	PayAmount       int64            `db:"pay_amount" json:"pay_amount"`
-	Status          string           `db:"status" json:"status"`
-	PaymentStatus   string           `db:"payment_status" json:"payment_status"`
-	ShipStatus      string           `db:"ship_status" json:"ship_status"`
-	ReceiverName    string           `db:"receiver_name" json:"receiver_name"`
-	ReceiverPhone   string           `db:"receiver_phone" json:"receiver_phone"`
-	ReceiverAddress string           `db:"receiver_address" json:"receiver_address"`
-	ReceiverZipCode *string          `db:"receiver_zip_code" json:"receiver_zip_code"`
-	Remark          *string          `db:"remark" json:"remark"`
-	PaidAt          dbtypes.NullTime `db:"paid_at" json:"paid_at"`
-	ShippedAt       dbtypes.NullTime `db:"shipped_at" json:"shipped_at"`
-	CompletedAt     dbtypes.NullTime `db:"completed_at" json:"completed_at"`
-	CancelledAt     dbtypes.NullTime `db:"cancelled_at" json:"cancelled_at"`
-	CreatedAt       time.Time        `db:"created_at" json:"created_at"`
-	UpdatedAt       time.Time        `db:"updated_at" json:"updated_at"`
-	DeletedAt       dbtypes.NullTime `db:"deleted_at" json:"deleted_at"`
+	ID              int64          `db:"id" json:"id"`
+	OrderNo         string         `db:"order_no" json:"order_no"`
+	UserID          int64          `db:"user_id" json:"user_id"`
+	TotalAmount     int64          `db:"total_amount" json:"total_amount"`
+	DiscountAmount  int64          `db:"discount_amount" json:"discount_amount"`
+	ShippingFee     int64          `db:"shipping_fee" json:"shipping_fee"`
+	PayAmount       int64          `db:"pay_amount" json:"pay_amount"`
+	Status          string         `db:"status" json:"status"`
+	PaymentStatus   string         `db:"payment_status" json:"payment_status"`
+	ShipStatus      string         `db:"ship_status" json:"ship_status"`
+	ReceiverName    string         `db:"receiver_name" json:"receiver_name"`
+	ReceiverPhone   string         `db:"receiver_phone" json:"receiver_phone"`
+	ReceiverAddress string         `db:"receiver_address" json:"receiver_address"`
+	ReceiverZipCode *string        `db:"receiver_zip_code" json:"receiver_zip_code"`
+	Remark          *string        `db:"remark" json:"remark"`
+	PaidAt          types.NullTime `db:"paid_at" json:"paid_at"`
+	ShippedAt       types.NullTime `db:"shipped_at" json:"shipped_at"`
+	CompletedAt     types.NullTime `db:"completed_at" json:"completed_at"`
+	CancelledAt     types.NullTime `db:"cancelled_at" json:"cancelled_at"`
+	CreatedAt       time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt       types.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type OrderItem struct {
-	ID           int64            `db:"id" json:"id"`
-	OrderID      int64            `db:"order_id" json:"order_id"`
-	ProductID    int64            `db:"product_id" json:"product_id"`
-	ProductName  string           `db:"product_name" json:"product_name"`
-	ProductImage *string          `db:"product_image" json:"product_image"`
-	Quantity     int32            `db:"quantity" json:"quantity"`
-	UnitPrice    int64            `db:"unit_price" json:"unit_price"`
-	TotalPrice   int64            `db:"total_price" json:"total_price"`
-	CreatedAt    time.Time        `db:"created_at" json:"created_at"`
-	UpdatedAt    time.Time        `db:"updated_at" json:"updated_at"`
-	DeletedAt    dbtypes.NullTime `db:"deleted_at" json:"deleted_at"`
+	ID           int64          `db:"id" json:"id"`
+	OrderID      int64          `db:"order_id" json:"order_id"`
+	ProductID    int64          `db:"product_id" json:"product_id"`
+	ProductName  string         `db:"product_name" json:"product_name"`
+	ProductImage *string        `db:"product_image" json:"product_image"`
+	Quantity     int32          `db:"quantity" json:"quantity"`
+	UnitPrice    int64          `db:"unit_price" json:"unit_price"`
+	TotalPrice   int64          `db:"total_price" json:"total_price"`
+	CreatedAt    time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt    time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt    types.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type Product struct {
-	ID                int64            `db:"id" json:"id"`
-	Name              string           `db:"name" json:"name"`
-	Description       *string          `db:"description" json:"description"`
-	Brand             *string          `db:"brand" json:"brand"`
-	Price             int64            `db:"price" json:"price"`
-	OriginPrice       int64            `db:"origin_price" json:"origin_price"`
-	CostPrice         *int64           `db:"cost_price" json:"cost_price"`
-	Stock             int32            `db:"stock" json:"stock"`
-	LowStockThreshold int32            `db:"low_stock_threshold" json:"low_stock_threshold"`
-	SalesCount        int32            `db:"sales_count" json:"sales_count"`
-	ViewCount         int32            `db:"view_count" json:"view_count"`
-	CategoryID        int64            `db:"category_id" json:"category_id"`
-	Status            string           `db:"status" json:"status"`
-	IsFeatured        bool             `db:"is_featured" json:"is_featured"`
-	Specifications    []byte           `db:"specifications" json:"specifications"`
-	CreatedAt         time.Time        `db:"created_at" json:"created_at"`
-	UpdatedAt         time.Time        `db:"updated_at" json:"updated_at"`
-	DeletedAt         dbtypes.NullTime `db:"deleted_at" json:"deleted_at"`
+	ID                int64          `db:"id" json:"id"`
+	Name              string         `db:"name" json:"name"`
+	Description       *string        `db:"description" json:"description"`
+	Brand             *string        `db:"brand" json:"brand"`
+	Price             int64          `db:"price" json:"price"`
+	OriginPrice       int64          `db:"origin_price" json:"origin_price"`
+	CostPrice         *int64         `db:"cost_price" json:"cost_price"`
+	Stock             int32          `db:"stock" json:"stock"`
+	LowStockThreshold int32          `db:"low_stock_threshold" json:"low_stock_threshold"`
+	SalesCount        int32          `db:"sales_count" json:"sales_count"`
+	ViewCount         int32          `db:"view_count" json:"view_count"`
+	CategoryID        int64          `db:"category_id" json:"category_id"`
+	Status            string         `db:"status" json:"status"`
+	IsFeatured        bool           `db:"is_featured" json:"is_featured"`
+	Specifications    []byte         `db:"specifications" json:"specifications"`
+	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt         types.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type ProductImage struct {
-	ID        int64            `db:"id" json:"id"`
-	ProductID int64            `db:"product_id" json:"product_id"`
-	ImageUrl  string           `db:"image_url" json:"image_url"`
-	Sort      *int32           `db:"sort" json:"sort"`
-	IsMain    *bool            `db:"is_main" json:"is_main"`
-	CreatedAt time.Time        `db:"created_at" json:"created_at"`
-	UpdatedAt time.Time        `db:"updated_at" json:"updated_at"`
-	DeletedAt dbtypes.NullTime `db:"deleted_at" json:"deleted_at"`
+	ID        int64          `db:"id" json:"id"`
+	ProductID int64          `db:"product_id" json:"product_id"`
+	ImageUrl  string         `db:"image_url" json:"image_url"`
+	Sort      *int32         `db:"sort" json:"sort"`
+	IsMain    *bool          `db:"is_main" json:"is_main"`
+	CreatedAt time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt types.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type Session struct {
@@ -119,24 +159,24 @@ type Session struct {
 }
 
 type User struct {
-	ID                int64            `db:"id" json:"id"`
-	Username          string           `db:"username" json:"username"`
-	Email             string           `db:"email" json:"email"`
-	Phone             *string          `db:"phone" json:"phone"`
-	Password          string           `db:"password" json:"password"`
-	Nickname          *string          `db:"nickname" json:"nickname"`
-	Avatar            *string          `db:"avatar" json:"avatar"`
-	Gender            string           `db:"gender" json:"gender"`
-	Birthday          dbtypes.NullTime `db:"birthday" json:"birthday"`
-	Status            string           `db:"status" json:"status"`
-	IsEmailVerified   bool             `db:"is_email_verified" json:"is_email_verified"`
-	IsPhoneVerified   bool             `db:"is_phone_verified" json:"is_phone_verified"`
-	LastLoginAt       dbtypes.NullTime `db:"last_login_at" json:"last_login_at"`
-	LastLoginIp       *string          `db:"last_login_ip" json:"last_login_ip"`
-	PasswordChangedAt dbtypes.NullTime `db:"password_changed_at" json:"password_changed_at"`
-	CreatedAt         time.Time        `db:"created_at" json:"created_at"`
-	UpdatedAt         time.Time        `db:"updated_at" json:"updated_at"`
-	DeletedAt         dbtypes.NullTime `db:"deleted_at" json:"deleted_at"`
+	ID                int64          `db:"id" json:"id"`
+	Username          string         `db:"username" json:"username"`
+	Email             string         `db:"email" json:"email"`
+	Phone             *string        `db:"phone" json:"phone"`
+	Password          string         `db:"password" json:"password"`
+	Nickname          *string        `db:"nickname" json:"nickname"`
+	Avatar            *string        `db:"avatar" json:"avatar"`
+	Gender            string         `db:"gender" json:"gender"`
+	Birthday          types.NullTime `db:"birthday" json:"birthday"`
+	Status            string         `db:"status" json:"status"`
+	IsEmailVerified   bool           `db:"is_email_verified" json:"is_email_verified"`
+	IsPhoneVerified   bool           `db:"is_phone_verified" json:"is_phone_verified"`
+	LastLoginAt       types.NullTime `db:"last_login_at" json:"last_login_at"`
+	LastLoginIp       *string        `db:"last_login_ip" json:"last_login_ip"`
+	PasswordChangedAt types.NullTime `db:"password_changed_at" json:"password_changed_at"`
+	CreatedAt         time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt         time.Time      `db:"updated_at" json:"updated_at"`
+	DeletedAt         types.NullTime `db:"deleted_at" json:"deleted_at"`
 }
 
 type VerificationCode struct {
